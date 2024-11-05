@@ -1,0 +1,113 @@
+// ej 4)
+TAD Sistema {
+    obs notas: dict⟨materia, dict⟨alumno,Z⟩⟩
+proc nuevoSistema() : Sistema
+proc registrarMateria(inout s : Sistema, in m : materia)
+proc registrarNota(inout s : Sistema, in m : materia, in a : alumno, in n : nota)
+proc notaDeAlumno(in s : Sistema, in a : alumno, m : materia) : nota
+proc cantAlumnosConNota(in s : Sistema, in m : materia, n : nota) : Z
+proc cantAlumnosAprobados(in s : Sistema, in m : materia) : Z
+}
+
+// A) Estructura:
+Modulo SistemaImpl implementa Sistema
+var materias : dictlog<materia,dict<alumno,nota>>
+
+// cuando hable de complejidades, m es la cantidad de materias y n es la cantidad de alumnos
+
+- proc nuevoSistema() : Sistema{ // O(1)
+res = new dictlog<-,dictlog<>>
+res.materias = <>
+return res
+}
+
+- proc registrarMateria(s,m) { // O(log m), con m = cantidad de materias
+if not Esta(s.materias,m);
+    definir(s.materias,m,dictlog<>)
+}
+
+- proc registrarNota(s,m,a,n) { // O(log m + log n), pues definir las materias me toma log m y definir las notas metoma log n => log m + log n
+if not Esta(s.materias,m)
+    return null
+else
+    definir(s.materias,m,dictlog<a,n>)
+}
+
+- proc notaDeAlumno(s,a,m) : nota { // O(log n + log m), pues obtengo el valor de m y de a, que son log de m y log de n
+if not Esta(s.materias,a)
+    return null
+else
+    return s.materias[m][a]
+}
+
+- proc cantAlumnosConNota(s,m,n) : int { // O(log m), con m = cantidad de materias
+var contador :=
+if not Esta(s.materias,m)
+    return null
+else
+    for alumno in s.materias[m]
+        if s.materias[m][alumno] == n
+            contador ++
+        else
+            return
+    return contador
+}
+
+- proc cantAlumnosAprobadosConNota(s,m) : int { // O(log m), con m = cantidad de materias
+var contador := 0
+if not Esta(s.materias,m)
+    return null
+else
+    for alumno in s.materias[m]
+        if s.materias[m][alumno] >= 7
+            contador ++
+        else
+            contador
+    return contador
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

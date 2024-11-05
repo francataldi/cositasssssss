@@ -1,0 +1,302 @@
+// ej 5
+
+proc esMaxHeap(in ab: ArbolBinario<T>) : bool{
+    return esMaxHeapRecursivo(ab.raiz) 
+}
+    
+proc esMaxHeapRecursivo(in nodo : Nodo<T>) : bool {
+    if nodo == null;
+        return true;
+
+    izq = nodo.izq
+    der = nodo.der
+    
+    if((izq != null && nodo.valor < izq.valor) || (der != null && nodo.valor < der.valor)) ;
+        return false;
+    
+    return esMaxHeapRecursivo(izq) && esMaxHeapRecursivo(der)
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+proc esMinHeap(in ab: ArbolBinario<T>) : bool {
+    return esMinHeapRecursivo(ab.raiz)
+}
+
+proc esMinHeapRecursivo(in nodo : Nodo<T>) : bool {
+    if nodo == null;
+        return true;
+
+    izq = nodo.izq
+    der = nodo.der
+    
+    if((izq != null && nodo.valor > izq.valor) || (der != null && nodo.valor > der.valor)) ;
+        return false;
+    
+    return esMinHeapRecursivo(izq) && esMinHeapRecursivo(der)
+}
+
+// ej 6
+1)
+        // en castellano y palabras:
+1- Como quiero implementar el tad ColaDePrioridad usando heaps, se que la raiz o primer elemento del heap, debe cumplir que sea max-heap o min-heap, osea que:
+    - si es max heap: la raiz o primer elemento, es el elemento mas grande y ademas, sus hijos son todos menores a el.
+    - si es min heap: la raiz o primer elemento, es el elemento mas pequeño y ademas, sus hijos son todos mayores a el.
+2- Cuando retire un elemento, dependiendo de si es max heap o min heap, va a ser eliminado el mas grande o mas pequeño.
+3- Como el heap esta implementado sobre un array, como vimos en las diapos de la clase virtual del TM, un heap implementado en array cumpla esto:
+    - en el caso de un max heap:
+        heap[i] >= heap[2i + 1] // hijo izq
+        heap[i] >= heap[2i + 2] // hijo der
+    - en el caso de un min heap:
+        heap[i] <= heap[2i + 1] // hijo izq
+        heap[i] <= heap[2i + 2] // hijo der
+        
+        //en logica:
+pred invRep(in CDP: ColaDePrioridad<T>) {
+
+forall i / 0 <= i < n ==>L ( (2i + 1 < n => heap[i] >= heap[2i + 1]) and (2i + 2 < n => heap[i] >= heap[2i + 2]) ) // max heap
+
+forall j / 0 <= j < n ==>L ( (2j + 1 < n => heap[j] <= heap[2j + 1]) and (2j + 2 < n => heap[j] <= heap[2j + 2]) ) // min heap
+
+}
+
+2)
+proc encolar(inout c: ColaDePrioridad<T> ,in e: T ,in pri: R) { // pri es la prioridad que tiene el elemento, para ver cuando deberia salir
+// => O(log n)
+var nuevoElemento := new Elemento(e,pri) // agarro y le asigno prioridad
+
+c.heap.agregar(nuevoElemento) // agrego el elemento que acabo de crear
+i := c.heap.tamaño() - 1 // este i representa el indice del nuevo elemento que le inserte
+
+// meto heapify up
+while ( (i > 0) && (c.heap.obtener(indiceDelPadre(i)).pri < c.heap.obtener(i).pri) ) do;
+    intercambiar(c.heap,i,indiceDelPadre(i)) // cambio con el padre
+    i := indiceDelPadre(i) // subo el indice
+}
+
+// auxs de encolar:
+proc indiceDelPadre(in i: int){
+    return (i-1) / 2  // consigo el indice del padre
+}
+proc intercambiar(inout h:heap<Array<T>>, in i: int, in j: int){
+    temp := h.obtener(i)   // consigo el indice de i
+    h.agregar(i,h.get(j)) // el elemento que estaba en j, ahora esta en i
+    h.agregar(j,temp)    // el elemento que estaba en i, ahora esta en j
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+proc desencolarMax(in c: ColaDePrioridad<T>) : T{
+// => O(log n)
+
+if c.heap.tamaño() == 0 {
+    no hagas nada porque no se puede desencolar nada
+}
+
+var maxElemento := c.heap.obtener(0) // es la raiz
+c.heap.reemplazar(0,c.heap.obtener(c.heap.tamaño() - 1)) // remplazo al maximo elemento, por el minimo
+c.heap.eliminar(c.heap.tamaño() - 1) // saco al ultimo elemento
+
+heapifyDown(c.heap,0,c.heap.tamaño()) // reordeno todas las cagadas que me mandé para q la raiz sea el mayor elemento devuelta
+return maxElemento // cosigo el maximo
+}
+
+// aux de desencolarMax:
+proc heapifyDown(inout h: heap<Array<T>>, in i: int, in n: int) {
+
+while true
+    var hijoIzq := 2i + 1
+    var hijoDer := 2i + 2
+    var mayor:= i //el nodo que seria el padre de estos hijos q declare arriba
+
+    if (hijoIzq < n && h.obtener(hijoIzq).pri > h.obtener(mayor).pri) then;
+        mayor := hijoIzq // actualizo mayor si el hijo izq del padre es mayor a el
+
+    if (hijoDer < n && h.obtener(hijoDer).pri > h.obtener(mayor).pri) then;
+        mayor := hijoDer // actualizo mayor si el hijo der del padre es mayor a el
+    
+    if mayor == i then;
+        no hagas nada
+
+    intercambiar(h,i,mayor)
+    i := mayor // actualizo el indice hacia el hijo mayor, para que vayan quedando los mayores en orden descendente desde la raiz
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+proc cambiarPrioridad(inout c: ColaDePrioridad<T>, in i: int, in newPri : R) {
+// => O(log n)
+
+if (i < 0 || i >= c.heap.tamaño())
+    no hagas nada
+
+var viejaPri := c.heap.obtener(i).pri // obtengo la vieja prioridad del elemento 
+c.heap.obtener(i).pri := newPri // cambia la prioridad
+
+// arreglo el heap pq cambie la prioridad, sino quedaria desordenado x prioridades
+if (newPri > viejaPri)
+    heapifyUp(c.heap,i)
+else
+    heapifyDown(c.heap,i,c.heap.tamaño())
+}
+
+// ej 7
+1- Bueno, notar que, si prioridad es una tupla del tipo (Z,Str), donde prioridad[0] = viejo parametro de prioridades y prioridad[1] = apellido, voy a tener que
+cuando para algun par de elementos, se repita prioridad[0], voy a tener que chequear el apellido. Considero que esperan que lo ordenemos por longitud de apellido
+en mi interpretacion, por lo que en cada lugar en el que tenga que chequear la prioridad, voy a tener que agregar el caso en que dos elementos tengan misma prioridad.
+Cuando se  cumpla eso, voy a analizar que onda la longitud de los apellidos, a menor longitud, mas prioridad recibiras, porque es mas divertido leer tu apellido.
+Debido a eso voy a tener que crear alguna aux que cuente la longitud de una palabra, en este caso los apellidos, y voy a mantener las partes de mi codigo de cambiar
+la prioridad en cuanto al heapifyDown y heapifyUp, porque voy a seguir necesitandolo luego de hacer mis cambios con el criterio de los apellidos y su longitud. Tambien
+voy a necesitar cambiar los otros procs de encolar y desencolar max, agregando los casos de cuando se igualen las prioridades.
+PD: la func aux para la longitud de la palabra seria algo del tipo :
+
+def contarLargoPalabra(P : Str) : Z
+acum := 0
+for letra in p:
+    acum ++
+return acum
+
+// ej 8
+1- Bueno, al decir secuencia de elementos, pienso en algun tipo de lista o array, por lo que voy a suponer que debo implementar un array sobre un heap. Tendre en cuenta
+como si elementos fueran simplemente enteros, sino ni idea como usar ordenamiento con otro tipo jejejeje. Tambien interpreto que la secuencia ordenada hace referencia
+a que ese ordenada de manera ascendente. Segun CHAT GPT el heapSort consiste en esto :
+"
+Heapsort usa principalmente heapifyDown porque la naturaleza del algoritmo no requiere elevar elementos hacia la raíz. Heapsort consiste en:
+
+Construir el Heap:
+Para crear un max-heap a partir de un arreglo desordenado, usamos heapifyDown desde el medio del arreglo hacia el principio. Esto asegura que todos los subárboles
+cumplan la propiedad de heap, dado que cada subárbol ya es un heap debido al proceso ascendente.
+
+Ordenar:
+Extraemos el máximo (raíz) y lo colocamos al final del arreglo, luego reducimos el tamaño del heap. Después, aplicamos heapifyDown en la nueva raíz para restaurar
+la propiedad de heap. El proceso no requiere heapifyUp porque estamos continuamente moviendo elementos desde la raíz (arriba) hacia abajo para ordenar.
+"
+- aca va mi implementacion del heapsort entonces:
+
+proc heapSortAscendente(inout Arr: Array<Z>) {
+// O(n log n)
+    n := tamaño(Arr)
+
+    for(i = n / 2 - 1, i--, 0) // aca construyo el max heap (orden ascendente) => O(n)
+        heapifyDown(Arr,n,i)
+    
+    for(i = n-1, i--,0) // O(n log n)
+        intercambiar(Arr,0,i) // muevo el mas grande a la posicion final
+        heapifyDown(Arr,i,0)
+}
+
+// ej 9
+
+- tengo q hacer un heap k-ario, osea que cada nodo, tiene como maximo, k hijos, y se cumple que es un heap, osea que cada padre es mayor o igual a sus hijos.
+Lo primero que se me ocurre para la estructura del modulo, es tratar de agregar alguna variable que haga referencia a los hijos que va a tener cada nodo.
+
+Modulo Heap-K-Ario implemente Heap<T> // ¿Tengo que implementar un max o min heap? - por las dudas hago un max-heap
+var data := Array<T> // en este caso, decido implementar el heap con arrays, pq me da paja hacerlo con otra cosa
+var cota := int // esta es la cantidad maxima de hijos que puede tener cada nodo
+var tamaño := int // va a ser el tamaño q va a tener el array
+
+// hago los procs del cola de prioridad log
+
+proc kheap_vacio() : Heap-K-Ario ;
+    res := new Array<T>[tamaño]
+    res.cota = cota
+    res.tamaño = tamaño
+    return res
+
+proc encolar(inout h: Heap-K-Ario, in e:T, in prioridad: int) {
+// => O(log sub k de n), por el heapifyUpK-Ario que hago adentro del proc
+var par := new Struct(e,prioridad)
+    h.data.agregar(par)
+    tamaño ++
+    heapifyUpK-Ario(tamaño - 1) // para chequear que se mantenga la prop del heap
+}
+
+proc consultarMax(in h: Heap-K-Ario) : int {
+// => O(1)
+var max := h.data.obtener(0)
+
+if max != null
+    return max
+else
+    return 0 // en mi implementaciom, si la raiz es null, devuelve 0 simbolizando que no hay max
+}
+
+proc desencolarMax(inout h: Heap-K-Ario) : T {
+// => O(log sub k de n), por el heapifyDownK-Ario que hago adentro del proc
+if tamaño == 0
+    return null
+
+var max := h.data.obtener(0)
+
+intercambiar(h, 0, tamaño - 1) // intercambiar lo defini arriba en otro coso
+tamaño --
+h.data.eliminar(tamaño) // en la posicion tamaño, ahi es donde quedo la raiz (max)
+heapifyDownK-Ario(0) // pq añadi un elemento menor a la raiz, en la raiz, y como la elimine a la raiz ya, toca ordenar devuelta el heap
+}
+
+proc cambiarPrioridad(inout h: Heap-K-Ario, in e: T, in nuevaPri: int) {
+// => O(n), pq en el peor caso, hago el while n veces
+var i := 0
+
+while i < tamaño do
+    if h.data.obtener(i) == e
+        if nuevaPri > h.data[i].prioridad then;
+        h.data[i].prioridad := nuevaPri
+        heapifyUpK-Ario(i) // reacomodo hacia arriba
+
+        else if nuevaPri < h.data[i].prioridad then;
+        h.data[i].prioridad := nuevaPri
+        heapifyDownK-Ario(i) // reacomodo hacia abajo
+
+    i ++
+}
+
+proc tamaño(in h:Heap-K-Ario) : int { 
+// => O(1)
+var longitud := h.tamaño
+return longitud
+}
+
+proc heapifyDownK-Ario(inout h: Heap-K-Ario, in i: int) { // heapify down en un heap k ario
+// => O(log sub k de n), pq recorro la altura entera del heap
+var max := i
+
+for(int j = 1, j <= h.cota, j++)
+    var hijo := kHijo(i,j)
+    if(hijo < h.tamaño && h.data[hijo].prioridad > h.data[max].prioridad)
+        max := hijo
+if max != i
+    intercambiar(h,i,max)
+    heapifyDownK-Ario(h,max)
+}
+
+proc heapifyUpK-Ario(inout h: Heap-K-Ario, in i: int) { // heapify up en un heap k ario
+// => O(log sub k de n), pq recorro la altura entera del heap
+while(i > 0 && h.data[padre(i)].prioridad < h.data[i].prioridad)
+    intercambiar(h,i,padre(i))
+    i = padre(i)
+}
+
+proc padre(in i : int) : int { // consigue el indice del padre de un nodo
+    return i-1 / h.cota
+}
+
+proc kHijo(in i: int, in k:int) : int { // consigue el indice del k-esimo hijo de un nodo
+    return h.cota * i + k
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
