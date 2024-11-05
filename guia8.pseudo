@@ -75,6 +75,32 @@ sean numeros unicos, y nada mas creo yo.
 (forall m: materia)(m in s.materias <=> m in s¨.materias) and (nota in s.materias <=> s¨.materias[m][n] = s.materias[m][a])
 }
 
+// ej 5)
+
+Modulo matrizInfinitaImpl implementa MatrizInfinita<bool>
+
+var matriz : vectorLineal<vectorLineal<bool>> // elijo un vector pq cuando n tiende a infinito, el costo de insertar un elemento, es 1 (chequear apunte de modulos)
+var devolverInversa : bool
+
+- proc crear() : MIB
+    res := new MIB 
+    res.matriz = <<>>
+    res.devolverInversa = False
+    return res 
+
+- proc ver(in m: MIB, in f: int, in c: int) : bool
+    if f < m.length and c < m.length
+        return m[f][c]
+    else
+        return devolverInversa
+
+- proc asignar(in m: MIB ,in f: int, in c: int, in v: bool)
+    if f < m.length and c < m.length
+        m[f][c] := v
+    
+- proc complementar(inout : MIB)
+m.devolverInversa = ¬ m.devolverInversa
+
 
 
 
