@@ -1,0 +1,121 @@
+// ej 4)
+TAD Sistema {
+    obs notas: dict⟨materia, dict⟨alumno,Z⟩⟩
+proc nuevoSistema() : Sistema
+proc registrarMateria(inout s : Sistema, in m : materia)
+proc registrarNota(inout s : Sistema, in m : materia, in a : alumno, in n : nota)
+proc notaDeAlumno(in s : Sistema, in a : alumno, m : materia) : nota
+proc cantAlumnosConNota(in s : Sistema, in m : materia, n : nota) : Z
+proc cantAlumnosAprobados(in s : Sistema, in m : materia) : Z
+}
+
+// A) Estructura:
+Modulo SistemaImpl implementa Sistema
+var materias : dictlog<materia,dictlog<alumno,nota>>
+var notas : dictlog<materia,dictlog<nota,cantidad>>, con cantidad = int
+
+// cuando hable de complejidades, m es la cantidad de materias y n es la cantidad de alumnos
+
+- proc nuevoSistema() : Sistema{ // O(1)
+res = new dictlog<-,dictlog<>>
+res.notas = <>
+res.materias = <>
+return res
+}
+
+- proc registrarMateria(s,m) { // O(log m), con m = cantidad de materias
+if not Esta(s.materias,m);
+    definir(s.materias,m,dictlog<>)
+}
+
+- proc registrarNota(s,m,a,n) { // O(log m + log n), pues definir las materias me toma log m y definir las notas metoma log n => log m + log n
+if not Esta(s.materias,m)
+    return null
+else
+    definir(s.materias,m,dictlog<a,n>)
+definir(s.notas,m,<n,cantidad ++>) // aca agrego la nota al dict de notas, y le asumo el valor +1 a la cantidad de notas que son esa
+}
+
+- proc notaDeAlumno(s,a,m) : nota { // O(log n + log m), pues obtengo el valor de m y de a, que son log de m y log de n
+if not Esta(s.materias,a)
+    return null
+else
+    return s.materias[m][a]
+}
+
+- proc cantAlumnosConNota(s,m,n) : int { // O(log m), con m = cantidad de materias
+if not Esta(s.materias,m)
+    return null
+else
+    return s.notas[m][n] // deberia devolver la cantidad de veces que se añadio la cantidad de la ntoa en la var notas
+}
+
+- proc cantAlumnosAprobadosConNota(s,m) : int { // O(log m), con m = cantidad de materias
+var contador := 0
+if not Esta(s.materias,m)
+    return null
+else
+    return s.notas[m][7] + s.notas[m][8] + s.notas[m][9] + s.notas[m][10]
+}
+
+// B) InvRep y FuncAbs:
+
+- en el invariante de representacion pedire que las notas vayan desde 0 hasta 10 inclusive en ambos casos, que la cantidad de claves nota de la variable
+notas, sea coherente conb la cantidad ed notas que hay, que por cada materia que hay, haya un registro de notas creadas, que todos los ID de los alumnos
+sean numeros unicos, y nada mas creo yo.
+
+- en la func abs tratare de matchear las vars del modulo con las del tad 
+
+- pred InvRep(in s: Sistema) {
+(forall n : nota)( 0 <= nota <= 10) and |s.materias.[m]tamaño| = 10 (tengo en cuenta q arranca de 1 el tamaño) and (for all m: materia)( existe una clave 
+    tal que s.materia[clave] = nota, con nota variando entre 0 y 10)
+}
+
+- pred FuncAbs(in s: Sistema, in s¨: SistemaImpl){
+(forall m: materia)(m in s.materias <=> m in s¨.materias) and (nota in s.materias <=> s¨.materias[m][n] = s.materias[m][a])
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
